@@ -204,13 +204,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6b8b88cef6f58141893fd6c79bed6ed, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  version: 
   bgmVolume: 0
   seVolume: 0
   maxEarnedMoney: 0
   totalEarnedMoney: 0
   maxChain: 0
   numberOfPlays: 0
-  version: 
 --- !u!1 &201890214
 GameObject:
   m_ObjectHideFlags: 0
@@ -1018,10 +1018,10 @@ RectTransform:
   - {fileID: 436358507}
   - {fileID: 1620389860}
   - {fileID: 1957399811}
-  - {fileID: 945104758}
   - {fileID: 1683780431}
   - {fileID: 1987808145}
   - {fileID: 873824532}
+  - {fileID: 945104758}
   m_Father: {fileID: 0}
   m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1159,7 +1159,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 702281055}
-  m_RootOrder: 7
+  m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
@@ -1425,7 +1425,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 702281055}
-  m_RootOrder: 4
+  m_RootOrder: 7
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
@@ -1988,7 +1988,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 702281055}
-  m_RootOrder: 5
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0}
   m_AnchorMax: {x: 1, y: 0}
@@ -2426,7 +2426,7 @@ RectTransform:
   - {fileID: 1577236356}
   - {fileID: 984359217}
   m_Father: {fileID: 702281055}
-  m_RootOrder: 6
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}

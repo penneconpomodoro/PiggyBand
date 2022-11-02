@@ -12,11 +12,6 @@ public class GameDirector : MonoBehaviour
     public const float minGameAreaY = 0f;
     public const float maxGameAreaY = 8f;
 
-    public AudioClip soundGameStart;
-    public AudioClip soundGameOver;
-    public AudioClip soundEarnMoney;
-    private AudioSource audioSource;
-
     public enum GameStatus
     {
         Ready,
@@ -36,7 +31,6 @@ public class GameDirector : MonoBehaviour
     void Start()
     {
         InitGame();
-        audioSource = GetComponent<AudioSource>();
     }
 
     private void InitGame()
@@ -66,8 +60,7 @@ public class GameDirector : MonoBehaviour
 
     private void PlayOneShotGameStart()
     {
-        audioSource.pitch = 1f;
-        audioSource.PlayOneShot(soundGameStart);
+        SoundManager.instance.PlaySE(SoundManager.SeType.GameStart);
     }
 
     private void GameIsOver()
@@ -83,8 +76,7 @@ public class GameDirector : MonoBehaviour
 
     private void PlayOneShotGameOver()
     {
-        audioSource.pitch = 1f;
-        audioSource.PlayOneShot(soundGameOver);
+        SoundManager.instance.PlaySE(SoundManager.SeType.GameOver);
     }
 
     // Update is called once per frame
@@ -156,9 +148,8 @@ public class GameDirector : MonoBehaviour
 
     private void PlayOneShotEarnMoney()
     {
-        audioSource.pitch = Mathf.Clamp(-1f, 1f, 0.2f * (float)CurrentChain - 1f);
-        audioSource.PlayOneShot(soundEarnMoney);
-        //        audioSource.pitch = 1f;
+        float pitch = Mathf.Pow(2f, Mathf.Lerp(-1f, 1f, ((float)CurrentChain - 1f) / 7f));
+        SoundManager.instance.PlaySE(SoundManager.SeType.EarnMoney, pitch);
     }
 
     private void ResetChainTimer()

@@ -5,9 +5,6 @@ using UnityEngine;
 
 public class AllCoinsController : MonoBehaviour
 {
-    public AudioClip soundAddCoins;
-    private AudioSource audioSource;
-
     public enum SwitchCoinsResult
     {
         NoCoins,
@@ -99,7 +96,7 @@ public class AllCoinsController : MonoBehaviour
 
     private void PlayOneShotAddCoins()
     {
-        audioSource.PlayOneShot(soundAddCoins);
+        SoundManager.instance.PlaySE(SoundManager.SeType.AddCoins);
     }
 
     private void Demo()
@@ -125,7 +122,6 @@ public class AllCoinsController : MonoBehaviour
     void Start()
     {
         gameDirector = GameObject.Find("GameDirector").GetComponent<GameDirector>();
-        audioSource = GetComponent<AudioSource>();
         Init();
     }
 

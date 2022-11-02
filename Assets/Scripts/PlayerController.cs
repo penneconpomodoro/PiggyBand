@@ -36,11 +36,6 @@ public class PlayerController : MonoBehaviour
     public PlayerStatus playerStatus;
     private PlayerStatus oldPlayerStatus;
     private int playerStatusCounter;
-    private AudioSource audioSource;
-    public AudioClip soundPlayerMove;
-    public AudioClip soundNormal;
-    public AudioClip soundSwitching;
-    public AudioClip soundCoinsSwitched;
     private float targetX;
     private float targetY;
     private int leftClickCounter;
@@ -55,7 +50,6 @@ public class PlayerController : MonoBehaviour
     void Start()
     {
         gameDirector = GameObject.Find("GameDirector").GetComponent<GameDirector>();
-        audioSource = GetComponent<AudioSource>();
         targetX = 0f;
         targetY = 0f;
         X = 0f;
@@ -71,7 +65,6 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        audioSource.mute = gameDirector.gameStatus != GameDirector.GameStatus.Active;
         if (Mouse.current.leftButton.isPressed) { leftClickCounter++; } else { leftClickCounter = 0; }
         SetPlayerStatus();
         SetMovingDirection();
@@ -151,21 +144,25 @@ public class PlayerController : MonoBehaviour
 
     private void PlayOneShotPlayerMove()
     {
-        audioSource.PlayOneShot(soundPlayerMove);
+        if (gameDirector.gameStatus != GameDirector.GameStatus.Active) return;
+        SoundManager.instance.PlaySE(SoundManager.SeType.PlayerMove);
     }
 
     private void PlayOneShotNormal()
     {
-        audioSource.PlayOneShot(soundNormal);
+        if (gameDirector.gameStatus != GameDirector.GameStatus.Active) return;
+        SoundManager.instance.PlaySE(SoundManager.SeType.Normal);
     }
 
     private void PlayOneShotSwitching()
     {
-        audioSource.PlayOneShot(soundSwitching);
+        if (gameDirector.gameStatus != GameDirector.GameStatus.Active) return;
+        SoundManager.instance.PlaySE(SoundManager.SeType.Switching);
     }
     private void PlayOneShotCoinsSwitched()
     {
-        audioSource.PlayOneShot(soundCoinsSwitched);
+        if (gameDirector.gameStatus != GameDirector.GameStatus.Active) return;
+        SoundManager.instance.PlaySE(SoundManager.SeType.CoinsSwitched);
     }
 
     private void LateUpdate()

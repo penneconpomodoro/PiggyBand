@@ -24,12 +24,12 @@ public class GameDirector : MonoBehaviour
         GameOver
     }
 
-    public long earnedMoney { get; private set; }
-    public float timerToFinish { get; private set; }
-    public int currentChain { get; private set; }
-    public int maxChain { get; private set; }
-    public float chainTimer { get; private set; }
-    private float resetChainTimer = 3f;
+    public long EarnedMoney { get; private set; }
+    public float TimerToFinish { get; private set; }
+    public int CurrentChain { get; private set; }
+    public int MaxChain { get; private set; }
+    public float ChainTimer { get; private set; }
+    private readonly float resetChainTimer = 3f;
     public GameStatus gameStatus { get; private set; }
 
     // Start is called before the first frame update
@@ -41,11 +41,11 @@ public class GameDirector : MonoBehaviour
 
     private void InitGame()
     {
-        earnedMoney = 0;
-        timerToFinish = durationForReady;
-        currentChain = 0;
-        maxChain = 0;
-        chainTimer = 0f;
+        EarnedMoney = 0;
+        TimerToFinish = durationForReady;
+        CurrentChain = 0;
+        MaxChain = 0;
+        ChainTimer = 0f;
         gameStatus = GameStatus.Ready;
 
         Debug.Log("Are you ready?");
@@ -53,11 +53,11 @@ public class GameDirector : MonoBehaviour
 
     private void StartGame()
     {
-        earnedMoney = 0;
-        timerToFinish = durationForGame;
-        currentChain = 0;
-        maxChain = 0;
-        chainTimer = 0f;
+        EarnedMoney = 0;
+        TimerToFinish = durationForGame;
+        CurrentChain = 0;
+        MaxChain = 0;
+        ChainTimer = 0f;
         gameStatus = GameStatus.Active;
         PlayOneShotGameStart();
 
@@ -75,8 +75,8 @@ public class GameDirector : MonoBehaviour
         gameStatus = GameStatus.GameOver;
         PlayOneShotGameOver();
 
-        naichilab.RankingLoader.Instance.SendScoreAndShowRanking(earnedMoney, 0);
-        //naichilab.RankingLoader.Instance.SendScoreAndShowRanking(maxChain, 1);
+        naichilab.RankingLoader.Instance.SendScoreAndShowRanking(EarnedMoney, 0);
+        //naichilab.RankingLoader.Instance.SendScoreAndShowRanking(MaxChain, 1);
 
         Debug.Log("Game is over.");
     }
@@ -92,15 +92,15 @@ public class GameDirector : MonoBehaviour
     {
         if (gameStatus == GameStatus.Ready)
         {
-            timerToFinish -= Time.deltaTime;
-            timerToFinish = Mathf.Max(0f, timerToFinish);
+            TimerToFinish -= Time.deltaTime;
+            TimerToFinish = Mathf.Max(0f, TimerToFinish);
         }
         else if (gameStatus == GameStatus.Active)
         {
-            chainTimer -= Time.deltaTime;
-            chainTimer = Mathf.Max(0, chainTimer);
-            timerToFinish -= Time.deltaTime;
-            timerToFinish = Mathf.Max(0f, timerToFinish);
+            ChainTimer -= Time.deltaTime;
+            ChainTimer = Mathf.Max(0, ChainTimer);
+            TimerToFinish -= Time.deltaTime;
+            TimerToFinish = Mathf.Max(0f, TimerToFinish);
         }
     }
 
@@ -108,18 +108,18 @@ public class GameDirector : MonoBehaviour
     {
         if (gameStatus == GameStatus.Ready)
         {
-            if (timerToFinish <= 0f)
+            if (TimerToFinish <= 0f)
             {
                 StartGame();
             }
         }
         else if (gameStatus == GameStatus.Active)
         {
-            if (chainTimer <= 0f)
+            if (ChainTimer <= 0f)
             {
-                currentChain = 0;
+                CurrentChain = 0;
             }
-            if (timerToFinish <= 0f)
+            if (TimerToFinish <= 0f)
             {
                 GameIsOver();
             }
@@ -131,7 +131,7 @@ public class GameDirector : MonoBehaviour
         int[] thd = new int[] { 100, 1000, 10000, 100000, 1000000 };
         foreach (int i in thd)
         {
-            if (old < i && earnedMoney >= i)
+            if (old < i && EarnedMoney >= i)
             {
                 ExtendTimer();
             }
@@ -140,29 +140,33 @@ public class GameDirector : MonoBehaviour
 
     private void ExtendTimer()
     {
-        timerToFinish += extendedDuration;
+        TimerToFinish += extendedDuration;
     }
 
     public void EarnMoney(int money)
     {
-        currentChain++;
-        maxChain = Mathf.Max(maxChain, currentChain);
-        ResetChainTimer();
-        long oldEarnedMoney = earnedMoney;
-        earnedMoney += (long)money * currentChain;
+        CurrentChain++;
+        MaxChain = Mathf.Max(MaxChain, CurrentChain);
+        long oldEarnedMoney = EarnedMoney;
+        EarnedMoney += (long)money * CurrentChain;
         CheckEarnedMoneyToExtendTimer(oldEarnedMoney);
         PlayOneShotEarnMoney();
     }
 
     private void PlayOneShotEarnMoney()
     {
-        audioSource.pitch = Mathf.Clamp(-1f, 1f, 0.2f * (float)currentChain - 1f);
+        audioSource.pitch = Mathf.Clamp(-1f, 1f, 0.2f * (float)CurrentChain - 1f);
         audioSource.PlayOneShot(soundEarnMoney);
         //        audioSource.pitch = 1f;
     }
 
     private void ResetChainTimer()
     {
-        chainTimer = resetChainTimer;
+        ChainTimer = resetChainTimer;
+    }
+
+    public void AnyCoinChaging()
+    {
+        ResetChainTimer();
     }
 }

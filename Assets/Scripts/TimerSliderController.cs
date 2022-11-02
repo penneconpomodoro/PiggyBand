@@ -20,7 +20,7 @@ public class TimerSliderController : MonoBehaviour
     void Update()
     {
         Slider slider = GetComponent<Slider>();
-        slider.value = gameDirector.timerToFinish;
+        slider.value = gameDirector.TimerToFinish;
         if(gameDirector.gameStatus == GameDirector.GameStatus.Ready)
         {
             slider.maxValue = GameDirector.durationForReady;

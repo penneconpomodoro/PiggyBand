@@ -16,6 +16,6 @@ public class MaxChainTextController : MonoBehaviour
     void Update()
     {
         Text text = GetComponent<Text>();
-        text.text = string.Format("最大連鎖数：{0}", gameDirector.maxChain);
+        text.text = string.Format("最大連鎖数：{0}", gameDirector.MaxChain);
     }
 }

@@ -8,14 +8,6 @@ public class AllCoinsController : MonoBehaviour
     public AudioClip soundAddCoins;
     private AudioSource audioSource;
 
-    public enum CoinStatus
-    {
-        Stay,
-        Moved,
-        Falling,
-        Changing
-    }
-
     public enum SwitchCoinsResult
     {
         NoCoins,
@@ -79,14 +71,15 @@ public class AllCoinsController : MonoBehaviour
             for (int x = 0; x < 7; x++)
             {
                 GameObject coin = Instantiate(obj[x + y * 7], this.transform);
-                coin.GetComponent<CoinController>().InitCoin(x + GameDirector.minGameAreaX, y + GameDirector.minGameAreaY, CoinStatus.Stay);
+                coin.GetComponent<CoinController>().InitCoin(x + GameDirector.minGameAreaX, y + GameDirector.minGameAreaY, false);
             }
         }
     }
+
     private void AddCoins()
     {
         GameObject[] coins = GameObject.FindGameObjectsWithTag("Coin");
-        if (coins.Max(x => x.GetComponent<CoinController>().coinY) <= GameDirector.maxGameAreaY - 3f)
+        if (coins.Max(x => x.GetComponent<CoinController>().y) <= GameDirector.maxGameAreaY - 3f)
         {
             List<GameObject> obj = new List<GameObject>();
             obj.AddRange(GetRandomCoinList());
@@ -96,7 +89,7 @@ public class AllCoinsController : MonoBehaviour
                 for (int x = 0; x < 7; x++)
                 {
                     GameObject coin = Instantiate(obj[x + y * 7], this.transform);
-                    coin.GetComponent<CoinController>().InitCoin(x + GameDirector.minGameAreaX, y + GameDirector.maxGameAreaY, CoinStatus.Stay);
+                    coin.GetComponent<CoinController>().InitCoin(x + GameDirector.minGameAreaX, y + GameDirector.maxGameAreaY, false);
                 }
             }
             PlayOneShotAddCoins();
@@ -117,8 +110,8 @@ public class AllCoinsController : MonoBehaviour
             {
                 GameObject obj = Instantiate(prefabs[i], this.transform);
                 CoinController coinController = obj.GetComponent<CoinController>();
-                coinController.coinX = i - 3;
-                coinController.coinY = j;
+                coinController.x = i - 3;
+                coinController.y = j;
                 coinController.coinType = (CoinController.CoinType)(i + 1);
             }
         }
@@ -143,6 +136,7 @@ public class AllCoinsController : MonoBehaviour
     {
         if (gameDirector.gameStatus == GameDirector.GameStatus.Active)
         {
+            if (IsAnyCoinChanging()) gameDirector.AnyCoinChaging();
             AddCoins();
             DropCoins();
             ChainCoins();
@@ -152,32 +146,25 @@ public class AllCoinsController : MonoBehaviour
     private void DropCoins()
     {
         GameObject[] coins = GameObject.FindGameObjectsWithTag("Coin");
-        var groupedCoinsByX = coins.GroupBy(x => x.GetComponent<CoinController>().coinX);
+        var groupedCoinsByX = coins.GroupBy(x => x.GetComponent<CoinController>().x);
         foreach (var i in groupedCoinsByX)
         {
-            var j = i.OrderBy(x => x.GetComponent<CoinController>().coinY);
+            var j = i.OrderBy(x => x.GetComponent<CoinController>().y);
             float stableY = -1f;
             foreach (var k in j)
             {
                 CoinController coinController = k.GetComponent<CoinController>();
-                if (stableY + 1f == coinController.coinY)
+                if (stableY + 1f == coinController.y)
                 {
-                    if (coinController.coinStatus == CoinStatus.Falling)
+                    if (coinController.IsFalling)
                     {
-                        coinController.coinStatus = CoinStatus.Moved;
+                        coinController.HasFallen();
                     }
-                    stableY = coinController.coinY;
+                    stableY = coinController.y;
                 }
-                else if (stableY + 1f < coinController.coinY)
+                else if (stableY + 1f < coinController.y)
                 {
-                    if (coinController.coinStatus == CoinStatus.Changing)
-                    {
-                        stableY = coinController.coinY;
-                    }
-                    else
-                    {
-                        coinController.coinStatus = CoinStatus.Falling;
-                    }
+                    coinController.SetFalling();
                 }
             }
         }
@@ -190,7 +177,7 @@ public class AllCoinsController : MonoBehaviour
 
         foreach (var v in groupedCoins)
         {
-            if (v.Any(x => x.GetComponent<CoinController>().coinStatus == AllCoinsController.CoinStatus.Moved))
+            if (v.Any(x => x.GetComponent<CoinController>().HasMoved))
             {
                 if (v[0].GetComponent<CoinController>().coinType == CoinController.CoinType.Coin1 && v.Count >= 5)
                 {
@@ -268,10 +255,10 @@ public class AllCoinsController : MonoBehaviour
 
         static GameObject GetBottomRightCoin(List<GameObject> v)
         {
-            float minY = v.Min(x => x.GetComponent<CoinController>().coinY);
-            var x = v.Where(a => a.GetComponent<CoinController>().coinY == minY);
-            float maxX = x.Max(a => a.GetComponent<CoinController>().coinX);
-            var y = x.First(a => a.GetComponent<CoinController>().coinX == maxX);
+            float minY = v.Min(x => x.GetComponent<CoinController>().y);
+            var x = v.Where(a => a.GetComponent<CoinController>().y == minY);
+            float maxX = x.Max(a => a.GetComponent<CoinController>().x);
+            var y = x.First(a => a.GetComponent<CoinController>().x == maxX);
             return y;
         }
     }
@@ -283,14 +270,14 @@ public class AllCoinsController : MonoBehaviour
 
         foreach (GameObject coin in coins)
         {
-            AllCoinsController.CoinStatus s = coin.GetComponent<CoinController>().coinStatus;
-            if (s == AllCoinsController.CoinStatus.Changing || s == AllCoinsController.CoinStatus.Falling)
+            CoinController s = coin.GetComponent<CoinController>();
+            if (s.IsChanging || s.IsFalling)
             {
                 continue;
             }
             CoinController.CoinType t = coin.GetComponent<CoinController>().coinType;
-            float x = coin.GetComponent<CoinController>().coinX;
-            float y = coin.GetComponent<CoinController>().coinY;
+            float x = coin.GetComponent<CoinController>().x;
+            float y = coin.GetComponent<CoinController>().y;
 
             List<int> groupIndex = new List<int>();
             for (int i = 0; i < groupedCoins.Count; i++)
@@ -300,8 +287,8 @@ public class AllCoinsController : MonoBehaviour
                 {
                     CoinController.CoinType jt = j.GetComponent<CoinController>().coinType;
                     if (t != jt) break;
-                    float jx = j.GetComponent<CoinController>().coinX;
-                    float jy = j.GetComponent<CoinController>().coinY;
+                    float jx = j.GetComponent<CoinController>().x;
+                    float jy = j.GetComponent<CoinController>().y;
                     isSameGroup |= ((x == jx) && (Mathf.Abs(y - jy) == 1f));
                     isSameGroup |= ((y == jy) && (Mathf.Abs(x - jx) == 1f));
                     if (isSameGroup) break;
@@ -345,8 +332,8 @@ public class AllCoinsController : MonoBehaviour
             case UtilityMethod.MovingDirection.Down: dstY--; break;
         }
 
-        var v = coins.Where(x => x.GetComponent<CoinController>().coinX == srcX && x.GetComponent<CoinController>().coinY == srcY);
-        var w = coins.Where(x => x.GetComponent<CoinController>().coinX == dstX && x.GetComponent<CoinController>().coinY == dstY);
+        var v = coins.Where(x => x.GetComponent<CoinController>().x == srcX && x.GetComponent<CoinController>().y == srcY);
+        var w = coins.Where(x => x.GetComponent<CoinController>().x == dstX && x.GetComponent<CoinController>().y == dstY);
 
         if (v.Count() > 1 || w.Count() > 1)
         {
@@ -361,7 +348,7 @@ public class AllCoinsController : MonoBehaviour
         if (v.Count() == 1 && w.Count() == 0)
         {
             CoinController coinController = v.First().GetComponent<CoinController>();
-            if (coinController.coinStatus == AllCoinsController.CoinStatus.Changing || coinController.coinStatus == AllCoinsController.CoinStatus.Falling)
+            if (coinController.IsFalling)
             {
                 Debug.Log("Src coin is not stable!!");
                 return SwitchCoinsResult.Failed;
@@ -372,7 +359,7 @@ public class AllCoinsController : MonoBehaviour
         if (v.Count() == 0 && w.Count() == 1)
         {
             CoinController coinController = w.First().GetComponent<CoinController>();
-            if (coinController.coinStatus == AllCoinsController.CoinStatus.Changing || coinController.coinStatus == AllCoinsController.CoinStatus.Falling)
+            if (coinController.IsFalling)
             {
                 Debug.Log("Dst coin is not stable!!");
                 return SwitchCoinsResult.Failed;
@@ -391,14 +378,14 @@ public class AllCoinsController : MonoBehaviour
         if (v.Count() == 1 && w.Count() == 1)
         {
             CoinController srcCoinController = v.First().GetComponent<CoinController>();
-            if (srcCoinController.coinStatus == AllCoinsController.CoinStatus.Changing || srcCoinController.coinStatus == AllCoinsController.CoinStatus.Falling)
+            if (srcCoinController.IsFalling)
             {
                 Debug.Log("Src coin is not stable!!");
                 return SwitchCoinsResult.Failed;
             }
 
             CoinController dstCoinController = w.First().GetComponent<CoinController>();
-            if (dstCoinController.coinStatus == AllCoinsController.CoinStatus.Changing || dstCoinController.coinStatus == AllCoinsController.CoinStatus.Falling)
+            if (dstCoinController.IsFalling)
             {
                 Debug.Log("Dst coin is not stable!!");
                 return SwitchCoinsResult.Failed;
@@ -416,5 +403,10 @@ public class AllCoinsController : MonoBehaviour
             return SwitchCoinsResult.Switched;
         }
         return SwitchCoinsResult.Failed;
+    }
+
+    private bool IsAnyCoinChanging()
+    {
+        return GameObject.FindGameObjectsWithTag("Coin").Any(x => x.GetComponent<CoinController>().IsChanging);
     }
 }

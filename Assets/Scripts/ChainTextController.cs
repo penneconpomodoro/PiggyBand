@@ -16,6 +16,6 @@ public class ChainTextController : MonoBehaviour
     void Update()
     {
         Text text = GetComponent<Text>();
-        text.text = string.Format("連鎖数：{0}", gameDirector.currentChain);
+        text.text = string.Format("連鎖数：{0}", gameDirector.CurrentChain);
     }
 }

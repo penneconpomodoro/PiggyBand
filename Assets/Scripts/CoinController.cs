@@ -13,6 +13,8 @@ public class CoinController : MonoBehaviour
     public CoinType coinType;
     private CoinType targetCoinType;
     public GameObject nextLevelCoinPrefab;
+    public GameObject changeMarkPrefab;
+
     public bool IsFalling { get; private set; }
     public bool IsChanging { get; private set; }
     public bool HasMoved { get; private set; }
@@ -82,11 +84,16 @@ public class CoinController : MonoBehaviour
 
         if (IsChanging)
         {
+            if(targetCoinType != CoinType.None && transform.Find("ChangeMark") == null)
+            {
+                GameObject obj = Instantiate(changeMarkPrefab, transform);
+                obj.name = obj.name.Replace("(Clone)", "");
+            }
             Color col = GetComponent<SpriteRenderer>().color;
             float a = ((1f + Mathf.Cos(2f * Mathf.PI * (float)changingCounter / 32f)) / 2f);
             //            float a = Mathf.Max(1f - (float)coinStatusCounter / 180f, 0f);
             GetComponent<SpriteRenderer>().color = new Color(col.r, col.g, col.b, a);
-            transform.rotation = Quaternion.Euler(0f, (float)changingCounter * 5f, 0f);
+            transform.Rotate(new Vector3(0f, 5f, 0f));
             if (changingCounter > 120)
             {
                 if (targetCoinType != CoinType.None)

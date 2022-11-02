@@ -7,7 +7,7 @@ public class CoinController : MonoBehaviour
     public float x;
     public float y;
     public float tracingFactor;
-    private UtilityMethod.MovingDirection movingDirection;
+    public UtilityMethod.MovingDirection movingDirection { get; private set; }
     private int fallingCounter;
     private int changingCounter;
     public CoinType coinType;
@@ -84,7 +84,7 @@ public class CoinController : MonoBehaviour
 
         if (IsChanging)
         {
-            if(targetCoinType != CoinType.None && transform.Find("ChangeMark") == null)
+            if (targetCoinType != CoinType.None && transform.Find("ChangeMark") == null)
             {
                 GameObject obj = Instantiate(changeMarkPrefab, transform);
                 obj.name = obj.name.Replace("(Clone)", "");

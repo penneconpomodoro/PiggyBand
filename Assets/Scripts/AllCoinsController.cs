@@ -319,18 +319,9 @@ public class AllCoinsController : MonoBehaviour
 
         return groupedCoins;
     }
-    public SwitchCoinsResult SwitchCoins(float srcX, float srcY, UtilityMethod.MovingDirection dir)
+    public SwitchCoinsResult SwitchCoins(float srcX, float srcY, float dstX, float dstY)
     {
         GameObject[] coins = GameObject.FindGameObjectsWithTag("Coin");
-        float dstX = srcX;
-        float dstY = srcY;
-        switch (dir)
-        {
-            case UtilityMethod.MovingDirection.Left: dstX--; break;
-            case UtilityMethod.MovingDirection.Right: dstX++; break;
-            case UtilityMethod.MovingDirection.Up: dstY++; break;
-            case UtilityMethod.MovingDirection.Down: dstY--; break;
-        }
 
         var v = coins.Where(x => x.GetComponent<CoinController>().x == srcX && x.GetComponent<CoinController>().y == srcY);
         var w = coins.Where(x => x.GetComponent<CoinController>().x == dstX && x.GetComponent<CoinController>().y == dstY);
@@ -353,7 +344,7 @@ public class AllCoinsController : MonoBehaviour
                 Debug.Log("Src coin is not stable!!");
                 return SwitchCoinsResult.Failed;
             }
-            coinController.SetMovingDirection(dir);
+            coinController.SetMovingDirection(srcX, srcY, dstX, dstY);
             return SwitchCoinsResult.Switched;
         }
         if (v.Count() == 0 && w.Count() == 1)
@@ -364,15 +355,7 @@ public class AllCoinsController : MonoBehaviour
                 Debug.Log("Dst coin is not stable!!");
                 return SwitchCoinsResult.Failed;
             }
-            UtilityMethod.MovingDirection objMovDir = UtilityMethod.MovingDirection.NotMoving;
-            switch (dir)
-            {
-                case UtilityMethod.MovingDirection.Left: objMovDir = UtilityMethod.MovingDirection.Right; break;
-                case UtilityMethod.MovingDirection.Right: objMovDir = UtilityMethod.MovingDirection.Left; break;
-                case UtilityMethod.MovingDirection.Up: objMovDir = UtilityMethod.MovingDirection.Down; break;
-                case UtilityMethod.MovingDirection.Down: objMovDir = UtilityMethod.MovingDirection.Up; break;
-            }
-            coinController.SetMovingDirection(objMovDir);
+            coinController.SetMovingDirection(dstX, dstY, srcX, srcY);
             return SwitchCoinsResult.Switched;
         }
         if (v.Count() == 1 && w.Count() == 1)
@@ -390,16 +373,8 @@ public class AllCoinsController : MonoBehaviour
                 Debug.Log("Dst coin is not stable!!");
                 return SwitchCoinsResult.Failed;
             }
-            srcCoinController.SetMovingDirection(dir);
-            UtilityMethod.MovingDirection objMovDir = UtilityMethod.MovingDirection.NotMoving;
-            switch (dir)
-            {
-                case UtilityMethod.MovingDirection.Left: objMovDir = UtilityMethod.MovingDirection.Right; break;
-                case UtilityMethod.MovingDirection.Right: objMovDir = UtilityMethod.MovingDirection.Left; break;
-                case UtilityMethod.MovingDirection.Up: objMovDir = UtilityMethod.MovingDirection.Down; break;
-                case UtilityMethod.MovingDirection.Down: objMovDir = UtilityMethod.MovingDirection.Up; break;
-            }
-            dstCoinController.SetMovingDirection(objMovDir);
+            srcCoinController.SetMovingDirection(srcX, srcY, dstX, dstY);
+            dstCoinController.SetMovingDirection(dstX, dstY, srcX, srcY);
             return SwitchCoinsResult.Switched;
         }
         return SwitchCoinsResult.Failed;

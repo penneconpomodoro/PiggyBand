@@ -109,10 +109,8 @@ public class AllCoinsController : MonoBehaviour
             for (int j = 0; j < 5; j++)
             {
                 GameObject obj = Instantiate(prefabs[i], this.transform);
-                CoinController coinController = obj.GetComponent<CoinController>();
-                coinController.x = i - 3;
-                coinController.y = j;
-                coinController.coinType = (CoinController.CoinType)(i + 1);
+                CoinController coin = obj.GetComponent<CoinController>();
+                coin.InitCoin((float)i - 3f, (float)j, (CoinController.CoinType)(i + 1), false);
             }
         }
     }
@@ -160,12 +158,12 @@ public class AllCoinsController : MonoBehaviour
                     {
                         coinController.HasFallen();
                     }
-                    stableY = coinController.y;
                 }
                 else if (stableY + 1f < coinController.y)
                 {
                     coinController.SetFalling();
                 }
+                stableY = coinController.y;
             }
         }
     }
@@ -319,6 +317,7 @@ public class AllCoinsController : MonoBehaviour
 
         return groupedCoins;
     }
+
     public SwitchCoinsResult SwitchCoins(float srcX, float srcY, float dstX, float dstY)
     {
         GameObject[] coins = GameObject.FindGameObjectsWithTag("Coin");
@@ -328,12 +327,12 @@ public class AllCoinsController : MonoBehaviour
 
         if (v.Count() > 1 || w.Count() > 1)
         {
-            Debug.Log("Multiple coins in player position!!");
+//            Debug.Log("Multiple coins in player position!!");
             return SwitchCoinsResult.Failed;
         }
         if (v.Count() == 0 && w.Count() == 0)
         {
-            Debug.Log("No coins in player position!!");
+//           Debug.Log("No coins in player position!!");
             return SwitchCoinsResult.NoCoins;
         }
         if (v.Count() == 1 && w.Count() == 0)
@@ -341,7 +340,17 @@ public class AllCoinsController : MonoBehaviour
             CoinController coinController = v.First().GetComponent<CoinController>();
             if (coinController.IsFalling)
             {
-                Debug.Log("Src coin is not stable!!");
+//                Debug.Log("Src coin is not stable!!");
+                return SwitchCoinsResult.Failed;
+            }
+            if (CollideWithFallingCoin(srcX, srcY))
+            {
+                Debug.Log("Collide with falling coin!!");
+                return SwitchCoinsResult.Failed;
+            }
+            if (CollideWithFallingCoin(dstX, dstY))
+            {
+                Debug.Log("Collide with falling coin!!");
                 return SwitchCoinsResult.Failed;
             }
             coinController.SetMovingDirection(srcX, srcY, dstX, dstY);
@@ -352,7 +361,17 @@ public class AllCoinsController : MonoBehaviour
             CoinController coinController = w.First().GetComponent<CoinController>();
             if (coinController.IsFalling)
             {
-                Debug.Log("Dst coin is not stable!!");
+//                Debug.Log("Dst coin is not stable!!");
+                return SwitchCoinsResult.Failed;
+            }
+            if (CollideWithFallingCoin(srcX, srcY))
+            {
+                Debug.Log("Collide with falling coin!!");
+                return SwitchCoinsResult.Failed;
+            }
+            if (CollideWithFallingCoin(dstX, dstY))
+            {
+                Debug.Log("Collide with falling coin!!");
                 return SwitchCoinsResult.Failed;
             }
             coinController.SetMovingDirection(dstX, dstY, srcX, srcY);
@@ -363,14 +382,23 @@ public class AllCoinsController : MonoBehaviour
             CoinController srcCoinController = v.First().GetComponent<CoinController>();
             if (srcCoinController.IsFalling)
             {
-                Debug.Log("Src coin is not stable!!");
+//                Debug.Log("Src coin is not stable!!");
                 return SwitchCoinsResult.Failed;
             }
-
             CoinController dstCoinController = w.First().GetComponent<CoinController>();
             if (dstCoinController.IsFalling)
             {
-                Debug.Log("Dst coin is not stable!!");
+//                Debug.Log("Dst coin is not stable!!");
+                return SwitchCoinsResult.Failed;
+            }
+            if (CollideWithFallingCoin(srcX, srcY))
+            {
+                Debug.Log("Collide with falling coin!!");
+                return SwitchCoinsResult.Failed;
+            }
+            if (CollideWithFallingCoin(dstX, dstY))
+            {
+                Debug.Log("Collide with falling coin!!");
                 return SwitchCoinsResult.Failed;
             }
             srcCoinController.SetMovingDirection(srcX, srcY, dstX, dstY);
@@ -383,5 +411,20 @@ public class AllCoinsController : MonoBehaviour
     private bool IsAnyCoinChanging()
     {
         return GameObject.FindGameObjectsWithTag("Coin").Any(x => x.GetComponent<CoinController>().IsChanging);
+    }
+
+    private bool CollideWithFallingCoin(float x, float y)
+    {
+        var v = GameObject.FindGameObjectsWithTag("Coin").Where(a => a.GetComponent<CoinController>().x == x && a.GetComponent<CoinController>().y == y + 1f);
+        if (v.Count() == 1)
+        {
+            CoinController coin = v.First().GetComponent<CoinController>();
+            if (coin.IsFalling && coin.movingDirection == UtilityMethod.MovingDirection.Down)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

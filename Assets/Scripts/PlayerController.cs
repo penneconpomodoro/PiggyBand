@@ -36,11 +36,6 @@ public class PlayerController : MonoBehaviour
     public PlayerStatus playerStatus;
     private PlayerStatus oldPlayerStatus;
     private int playerStatusCounter;
-    private AudioSource audioSource;
-    public AudioClip soundPlayerMove;
-    public AudioClip soundNormal;
-    public AudioClip soundSwitching;
-    public AudioClip soundCoinsSwitched;
     private float targetX;
     private float targetY;
     private int leftClickCounter;
@@ -55,7 +50,6 @@ public class PlayerController : MonoBehaviour
     void Start()
     {
         gameDirector = GameObject.Find("GameDirector").GetComponent<GameDirector>();
-        audioSource = GetComponent<AudioSource>();
         targetX = 0f;
         targetY = 0f;
         X = 0f;
@@ -71,7 +65,6 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        audioSource.mute = gameDirector.gameStatus != GameDirector.GameStatus.Active;
         if (Mouse.current.leftButton.isPressed) { leftClickCounter++; } else { leftClickCounter = 0; }
         SetPlayerStatus();
         SetMovingDirection();
@@ -93,19 +86,19 @@ public class PlayerController : MonoBehaviour
         // keydown is not available when left click
         else
         {
-            if (Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow))
+            if (Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow) || PomodoroInputSystemWrapper.GetKeyDown(PomodoroInputSystemWrapper.KeyCode.GamepadDpadLeft))
             {
                 targetX = X - 1f;
             }
-            else if (Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.RightArrow))
+            else if (Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.RightArrow) || PomodoroInputSystemWrapper.GetKeyDown(PomodoroInputSystemWrapper.KeyCode.GamepadDpadRight))
             {
                 targetX = X + 1f;
             }
-            else if (Input.GetKeyDown(KeyCode.Z) || Input.GetKeyDown(KeyCode.DownArrow))
+            else if (Input.GetKeyDown(KeyCode.Z) || Input.GetKeyDown(KeyCode.DownArrow) || PomodoroInputSystemWrapper.GetKeyDown(PomodoroInputSystemWrapper.KeyCode.GamepadDpadDown))
             {
                 targetY = Y - 1f;
             }
-            else if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow))
+            else if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow) || PomodoroInputSystemWrapper.GetKeyDown(PomodoroInputSystemWrapper.KeyCode.GamepadDpadUp))
             {
                 targetY = Y + 1f;
             }
@@ -120,20 +113,13 @@ public class PlayerController : MonoBehaviour
         playerStatus = PlayerStatus.Normal;
         if (gameDirector.gameStatus == GameDirector.GameStatus.Active)
         {
-            if (Input.GetKey(KeyCode.RightShift) || Input.GetKey(KeyCode.LeftShift))
+            if (Input.GetKey(KeyCode.RightShift) || Input.GetKey(KeyCode.LeftShift) || PomodoroInputSystemWrapper.GetKey(PomodoroInputSystemWrapper.KeyCode.GamepadButtonSouth))
             {
                 playerStatus = PlayerStatus.Switching;
             }
             else if (leftClickCounter > 1)
             {
                 playerStatus = PlayerStatus.Switching;
-            }
-            else if (Gamepad.current != null)
-            {
-                if (Gamepad.current.buttonSouth.isPressed)
-                {
-                    playerStatus = PlayerStatus.Switching;
-                }
             }
         }
 
@@ -158,21 +144,25 @@ public class PlayerController : MonoBehaviour
 
     private void PlayOneShotPlayerMove()
     {
-        audioSource.PlayOneShot(soundPlayerMove);
+        if (gameDirector.gameStatus != GameDirector.GameStatus.Active) return;
+        SoundManager.instance.PlaySE(SoundManager.SeType.PlayerMove);
     }
 
     private void PlayOneShotNormal()
     {
-        audioSource.PlayOneShot(soundNormal);
+        if (gameDirector.gameStatus != GameDirector.GameStatus.Active) return;
+        SoundManager.instance.PlaySE(SoundManager.SeType.Normal);
     }
 
     private void PlayOneShotSwitching()
     {
-        audioSource.PlayOneShot(soundSwitching);
+        if (gameDirector.gameStatus != GameDirector.GameStatus.Active) return;
+        SoundManager.instance.PlaySE(SoundManager.SeType.Switching);
     }
     private void PlayOneShotCoinsSwitched()
     {
-        audioSource.PlayOneShot(soundCoinsSwitched);
+        if (gameDirector.gameStatus != GameDirector.GameStatus.Active) return;
+        SoundManager.instance.PlaySE(SoundManager.SeType.CoinsSwitched);
     }
 
     private void LateUpdate()

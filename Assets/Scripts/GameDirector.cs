@@ -12,11 +12,6 @@ public class GameDirector : MonoBehaviour
     public const float minGameAreaY = 0f;
     public const float maxGameAreaY = 8f;
 
-    public AudioClip soundGameStart;
-    public AudioClip soundGameOver;
-    public AudioClip soundEarnMoney;
-    private AudioSource audioSource;
-
     public enum GameStatus
     {
         Ready,
@@ -24,7 +19,7 @@ public class GameDirector : MonoBehaviour
         GameOver
     }
 
-    public long EarnedMoney { get; private set; }
+    public int EarnedMoney { get; private set; }
     public float TimerToFinish { get; private set; }
     public int CurrentChain { get; private set; }
     public int MaxChain { get; private set; }
@@ -36,7 +31,6 @@ public class GameDirector : MonoBehaviour
     void Start()
     {
         InitGame();
-        audioSource = GetComponent<AudioSource>();
     }
 
     private void InitGame()
@@ -66,14 +60,19 @@ public class GameDirector : MonoBehaviour
 
     private void PlayOneShotGameStart()
     {
-        audioSource.pitch = 1f;
-        audioSource.PlayOneShot(soundGameStart);
+        SoundManager.instance.PlaySE(SoundManager.SeType.GameStart);
     }
 
     private void GameIsOver()
     {
         gameStatus = GameStatus.GameOver;
         PlayOneShotGameOver();
+
+        PlayerDataManager.instance.numberOfPlays++;
+        PlayerDataManager.instance.maxEarnedMoney = (int)Mathf.Max(PlayerDataManager.instance.maxEarnedMoney, EarnedMoney);
+        PlayerDataManager.instance.totalEarnedMoney += EarnedMoney;
+        PlayerDataManager.instance.maxChain = Mathf.Max(PlayerDataManager.instance.maxChain, MaxChain);
+        PlayerDataManager.instance.Save();
 
         naichilab.RankingLoader.Instance.SendScoreAndShowRanking(EarnedMoney, 0);
         //naichilab.RankingLoader.Instance.SendScoreAndShowRanking(MaxChain, 1);
@@ -83,8 +82,7 @@ public class GameDirector : MonoBehaviour
 
     private void PlayOneShotGameOver()
     {
-        audioSource.pitch = 1f;
-        audioSource.PlayOneShot(soundGameOver);
+        SoundManager.instance.PlaySE(SoundManager.SeType.GameOver);
     }
 
     // Update is called once per frame
@@ -149,16 +147,15 @@ public class GameDirector : MonoBehaviour
         MaxChain = Mathf.Max(MaxChain, CurrentChain);
         ResetChainTimer();
         long oldEarnedMoney = EarnedMoney;
-        EarnedMoney += (long)money * CurrentChain;
+        EarnedMoney += money * CurrentChain;
         CheckEarnedMoneyToExtendTimer(oldEarnedMoney);
         PlayOneShotEarnMoney();
     }
 
     private void PlayOneShotEarnMoney()
     {
-        audioSource.pitch = Mathf.Clamp(-1f, 1f, 0.2f * (float)CurrentChain - 1f);
-        audioSource.PlayOneShot(soundEarnMoney);
-        //        audioSource.pitch = 1f;
+        float pitch = Mathf.Pow(2f, Mathf.Lerp(-1f, 1f, ((float)CurrentChain - 1f) / 7f));
+        SoundManager.instance.PlaySE(SoundManager.SeType.EarnMoney, pitch);
     }
 
     private void ResetChainTimer()

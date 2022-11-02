@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 
 public class UtilityMethod
@@ -29,20 +30,19 @@ public class UtilityMethod
 public class PlayerController : MonoBehaviour
 {
     private GameDirector gameDirector;
-    public float playerX;
-    public float playerY;
-    private float intermediatePlayerX;
-    private float intermediatePlayerY;
+    public float X { get; private set; }
+    public float Y { get; private set; }
     public float tracingFactor;
     public PlayerStatus playerStatus;
     private PlayerStatus oldPlayerStatus;
-    private UtilityMethod.MovingDirection movingDirection;
     private int playerStatusCounter;
     private AudioSource audioSource;
     public AudioClip soundPlayerMove;
     public AudioClip soundNormal;
     public AudioClip soundSwitching;
     public AudioClip soundCoinsSwitched;
+    private float targetX;
+    private float targetY;
 
     public enum PlayerStatus
     {
@@ -55,13 +55,13 @@ public class PlayerController : MonoBehaviour
     {
         gameDirector = GameObject.Find("GameDirector").GetComponent<GameDirector>();
         audioSource = GetComponent<AudioSource>();
-        playerX = 0f;
-        playerY = 0f;
-        intermediatePlayerX = 0f;
-        intermediatePlayerY = 0f;
+        targetX = 0f;
+        targetY = 0f;
+        X = 0f;
+        Y = 0f;
+        transform.position = new Vector3(X, Y, 0);
         playerStatus = PlayerStatus.Normal;
         oldPlayerStatus = playerStatus;
-        movingDirection = UtilityMethod.MovingDirection.NotMoving;
         playerStatusCounter = 0;
         NormalPlayer();
     }
@@ -76,36 +76,62 @@ public class PlayerController : MonoBehaviour
 
     private void SetMovingDirection()
     {
-        movingDirection = 0;
-        if (Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow))
+        targetX = X;
+        targetY = Y;
+
+        if (Mouse.current.leftButton.isPressed)
         {
-            movingDirection = UtilityMethod.MovingDirection.Left;
+            Vector3 mousePosition = Input.mousePosition;
+            mousePosition.z = -10f;
+            Vector3 target = Camera.main.ScreenToWorldPoint(mousePosition);
+            targetX = Mathf.Round(target.x);
+            targetY = Mathf.Round(target.y);
         }
-        else if (Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.RightArrow))
+        // keydown is not available when left click
+        else
         {
-            movingDirection = UtilityMethod.MovingDirection.Right;
+            if (Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow))
+            {
+                targetX = X - 1f;
+            }
+            else if (Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.RightArrow))
+            {
+                targetX = X + 1f;
+            }
+            else if (Input.GetKeyDown(KeyCode.Z) || Input.GetKeyDown(KeyCode.DownArrow))
+            {
+                targetY = Y - 1f;
+            }
+            else if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow))
+            {
+                targetY = Y + 1f;
+            }
         }
-        else if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow))
-        {
-            movingDirection = UtilityMethod.MovingDirection.Up;
-        }
-        else if (Input.GetKeyDown(KeyCode.Z) || Input.GetKeyDown(KeyCode.DownArrow))
-        {
-            movingDirection = UtilityMethod.MovingDirection.Down;
-        }
+        targetX = Mathf.Clamp(targetX, GameDirector.minGameAreaX, GameDirector.maxGameAreaX);
+        targetY = Mathf.Clamp(targetY, GameDirector.minGameAreaY, GameDirector.maxGameAreaY);
     }
 
     private void SetPlayerStatus()
     {
         oldPlayerStatus = playerStatus;
-        if (gameDirector.gameStatus == GameDirector.GameStatus.Active &&
-            (Input.GetKey(KeyCode.RightShift) || Input.GetKey(KeyCode.LeftShift)))
+        playerStatus = PlayerStatus.Normal;
+        if (gameDirector.gameStatus == GameDirector.GameStatus.Active)
         {
-            playerStatus = PlayerStatus.Switching;
-        }
-        else
-        {
-            playerStatus = PlayerStatus.Normal;
+            if (Input.GetKey(KeyCode.RightShift) || Input.GetKey(KeyCode.LeftShift))
+            {
+                playerStatus = PlayerStatus.Switching;
+            }
+            else if (Input.GetMouseButton(0))
+            {
+                playerStatus = PlayerStatus.Switching;
+            }
+            else if (Gamepad.current != null)
+            {
+                if (Gamepad.current.buttonSouth.isPressed)
+                {
+                    playerStatus = PlayerStatus.Switching;
+                }
+            }
         }
 
         if (oldPlayerStatus != playerStatus)
@@ -148,23 +174,17 @@ public class PlayerController : MonoBehaviour
 
     private void LateUpdate()
     {
-        float oldX = playerX;
-        float oldY = playerY;
-
-        switch (movingDirection)
-        {
-            case UtilityMethod.MovingDirection.Left: playerX--; break;
-            case UtilityMethod.MovingDirection.Right: playerX++; break;
-            case UtilityMethod.MovingDirection.Up: playerY++; break;
-            case UtilityMethod.MovingDirection.Down: playerY--; break;
-        }
-        playerX = Mathf.Clamp(playerX, GameDirector.minGameAreaX, GameDirector.maxGameAreaX);
-        playerY = Mathf.Clamp(playerY, GameDirector.minGameAreaY, GameDirector.maxGameAreaY);
+        float oldX = X;
+        float oldY = Y;
+        X = targetX;
+        Y = targetY;
 
         // interpolated player position
-        intermediatePlayerX = UtilityMethod.GetIntermediateX(intermediatePlayerX, playerX, tracingFactor, 1e-3f);
-        intermediatePlayerY = UtilityMethod.GetIntermediateX(intermediatePlayerY, playerY, tracingFactor, 1e-3f);
-        transform.position = new Vector3(intermediatePlayerX, intermediatePlayerY, 0);
+        transform.position = Vector3.Lerp(transform.position, new Vector3(X, Y, 0f), tracingFactor);
+        if ((new Vector3(X, Y, 0f) - transform.position).magnitude < 1e-3)
+        {
+            transform.position = new Vector3(X, Y, 0f);
+        }
 
         AllCoinsController.SwitchCoinsResult switchCoins = AllCoinsController.SwitchCoinsResult.NoCoins;
 
@@ -176,27 +196,22 @@ public class PlayerController : MonoBehaviour
         {
             SwitchingPlayer();
 
-            if (movingDirection != UtilityMethod.MovingDirection.NotMoving &&
-                (oldX == playerX && Mathf.Abs(oldY - playerY) == 1f || (oldY == playerY && Mathf.Abs(oldX - playerX) == 1f)))
+            if ((oldX == X && Mathf.Abs(oldY - Y) == 1f || (oldY == Y && Mathf.Abs(oldX - X) == 1f)))
             {
-                switchCoins = GameObject.Find("Coins").GetComponent<AllCoinsController>().SwitchCoins(oldX, oldY, movingDirection);
+                switchCoins = GameObject.Find("Coins").GetComponent<AllCoinsController>().SwitchCoins(oldX, oldY, X, Y);
             }
         }
-        if(movingDirection != UtilityMethod.MovingDirection.NotMoving)
+        if (oldX == X && oldY == Y)
         {
-            if(oldX == playerX && oldY == playerY)
-            {
 
-            }
-            else if(switchCoins== AllCoinsController.SwitchCoinsResult.NoCoins)
-            {
-                PlayOneShotPlayerMove();
-            }
-            else if (switchCoins == AllCoinsController.SwitchCoinsResult.Switched)
-            {
-                PlayOneShotCoinsSwitched();
-            }
-
+        }
+        else if (switchCoins == AllCoinsController.SwitchCoinsResult.NoCoins)
+        {
+            PlayOneShotPlayerMove();
+        }
+        else if (switchCoins == AllCoinsController.SwitchCoinsResult.Switched)
+        {
+            PlayOneShotCoinsSwitched();
         }
     }
 

@@ -127,9 +127,31 @@ public class CoinController : MonoBehaviour
         HasMoved = b;
     }
 
-    public void SetMovingDirection(UtilityMethod.MovingDirection direction)
+    public void SetMovingDirection(float sx, float sy, float dx, float dy)
     {
-        movingDirection = direction;
+        movingDirection = UtilityMethod.MovingDirection.NotMoving;
+        if (sy == dy)
+        {
+            if (dx - sx == -1f)
+            {
+                movingDirection = UtilityMethod.MovingDirection.Left;
+            }
+            else if (dx - sx == 1f)
+            {
+                movingDirection = UtilityMethod.MovingDirection.Right;
+            }
+        }
+        else if (sx == dx)
+        {
+            if (dy - sy == -1f)
+            {
+                movingDirection = UtilityMethod.MovingDirection.Down;
+            }
+            else if (dy - sy == 1f)
+            {
+                movingDirection = UtilityMethod.MovingDirection.Up;
+            }
+        }
     }
 
     public void SetTargetCoinType(CoinType type)

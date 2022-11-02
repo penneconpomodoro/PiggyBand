@@ -19,7 +19,7 @@ public class GameDirector : MonoBehaviour
         GameOver
     }
 
-    public long EarnedMoney { get; private set; }
+    public int EarnedMoney { get; private set; }
     public float TimerToFinish { get; private set; }
     public int CurrentChain { get; private set; }
     public int MaxChain { get; private set; }
@@ -67,6 +67,12 @@ public class GameDirector : MonoBehaviour
     {
         gameStatus = GameStatus.GameOver;
         PlayOneShotGameOver();
+
+        PlayerDataManager.instance.numberOfPlays++;
+        PlayerDataManager.instance.maxEarnedMoney = (int)Mathf.Max(PlayerDataManager.instance.maxEarnedMoney, EarnedMoney);
+        PlayerDataManager.instance.totalEarnedMoney += EarnedMoney;
+        PlayerDataManager.instance.maxChain = Mathf.Max(PlayerDataManager.instance.maxChain, MaxChain);
+        PlayerDataManager.instance.Save();
 
         naichilab.RankingLoader.Instance.SendScoreAndShowRanking(EarnedMoney, 0);
         //naichilab.RankingLoader.Instance.SendScoreAndShowRanking(MaxChain, 1);
@@ -141,7 +147,7 @@ public class GameDirector : MonoBehaviour
         MaxChain = Mathf.Max(MaxChain, CurrentChain);
         ResetChainTimer();
         long oldEarnedMoney = EarnedMoney;
-        EarnedMoney += (long)money * CurrentChain;
+        EarnedMoney += money * CurrentChain;
         CheckEarnedMoneyToExtendTimer(oldEarnedMoney);
         PlayOneShotEarnMoney();
     }

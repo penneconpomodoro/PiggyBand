@@ -24,11 +24,11 @@ public class MoneyTextController : MonoBehaviour
     void Update()
     {
         Text moneyText = GetComponent<Text>();
-        moneyText.text = string.Format("ÇΩÇ‹Ç¡ÇΩÇ®ã‡ÅF{0:#,0}â~", gameDirector.earnedMoney);
-        if (oldEarnedMoney < gameDirector.earnedMoney)
+        moneyText.text = string.Format("ÇΩÇ‹Ç¡ÇΩÇ®ã‡ÅF{0:#,0}â~", gameDirector.EarnedMoney);
+        if (oldEarnedMoney < gameDirector.EarnedMoney)
         {
             counter = durationForTempEarnedMoney;
-            tempEarnedMoney = gameDirector.earnedMoney - oldEarnedMoney;
+            tempEarnedMoney = gameDirector.EarnedMoney - oldEarnedMoney;
         }
         counter--;
         counter = Mathf.Max(0, counter);
@@ -36,6 +36,6 @@ public class MoneyTextController : MonoBehaviour
         {
             moneyText.text += string.Format("\n  ëùÇ¶ÇΩÇ®ã‡ÅF{0:+#,0}â~", tempEarnedMoney);
         }
-        oldEarnedMoney = gameDirector.earnedMoney;
+        oldEarnedMoney = gameDirector.EarnedMoney;
     }
 }

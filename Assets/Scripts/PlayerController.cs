@@ -93,19 +93,19 @@ public class PlayerController : MonoBehaviour
         // keydown is not available when left click
         else
         {
-            if (Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow))
+            if (Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow) || PomodoroInputSystemWrapper.GetKeyDown(PomodoroInputSystemWrapper.KeyCode.GamepadDpadLeft))
             {
                 targetX = X - 1f;
             }
-            else if (Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.RightArrow))
+            else if (Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.RightArrow) || PomodoroInputSystemWrapper.GetKeyDown(PomodoroInputSystemWrapper.KeyCode.GamepadDpadRight))
             {
                 targetX = X + 1f;
             }
-            else if (Input.GetKeyDown(KeyCode.Z) || Input.GetKeyDown(KeyCode.DownArrow))
+            else if (Input.GetKeyDown(KeyCode.Z) || Input.GetKeyDown(KeyCode.DownArrow) || PomodoroInputSystemWrapper.GetKeyDown(PomodoroInputSystemWrapper.KeyCode.GamepadDpadDown))
             {
                 targetY = Y - 1f;
             }
-            else if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow))
+            else if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow) || PomodoroInputSystemWrapper.GetKeyDown(PomodoroInputSystemWrapper.KeyCode.GamepadDpadUp))
             {
                 targetY = Y + 1f;
             }
@@ -120,20 +120,13 @@ public class PlayerController : MonoBehaviour
         playerStatus = PlayerStatus.Normal;
         if (gameDirector.gameStatus == GameDirector.GameStatus.Active)
         {
-            if (Input.GetKey(KeyCode.RightShift) || Input.GetKey(KeyCode.LeftShift))
+            if (Input.GetKey(KeyCode.RightShift) || Input.GetKey(KeyCode.LeftShift) || PomodoroInputSystemWrapper.GetKey(PomodoroInputSystemWrapper.KeyCode.GamepadButtonSouth))
             {
                 playerStatus = PlayerStatus.Switching;
             }
             else if (leftClickCounter > 1)
             {
                 playerStatus = PlayerStatus.Switching;
-            }
-            else if (Gamepad.current != null)
-            {
-                if (Gamepad.current.buttonSouth.isPressed)
-                {
-                    playerStatus = PlayerStatus.Switching;
-                }
             }
         }
 

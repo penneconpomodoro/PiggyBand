@@ -43,6 +43,7 @@ public class PlayerController : MonoBehaviour
     public AudioClip soundCoinsSwitched;
     private float targetX;
     private float targetY;
+    private int leftClickCounter;
 
     public enum PlayerStatus
     {
@@ -63,6 +64,7 @@ public class PlayerController : MonoBehaviour
         playerStatus = PlayerStatus.Normal;
         oldPlayerStatus = playerStatus;
         playerStatusCounter = 0;
+        leftClickCounter = 0;
         NormalPlayer();
     }
 
@@ -70,6 +72,7 @@ public class PlayerController : MonoBehaviour
     void Update()
     {
         audioSource.mute = gameDirector.gameStatus != GameDirector.GameStatus.Active;
+        if (Mouse.current.leftButton.isPressed) { leftClickCounter++; } else { leftClickCounter = 0; }
         SetPlayerStatus();
         SetMovingDirection();
     }
@@ -79,7 +82,7 @@ public class PlayerController : MonoBehaviour
         targetX = X;
         targetY = Y;
 
-        if (Mouse.current.leftButton.isPressed)
+        if (leftClickCounter > 0)
         {
             Vector3 mousePosition = Input.mousePosition;
             mousePosition.z = -10f;
@@ -121,7 +124,7 @@ public class PlayerController : MonoBehaviour
             {
                 playerStatus = PlayerStatus.Switching;
             }
-            else if (Input.GetMouseButton(0))
+            else if (leftClickCounter > 1)
             {
                 playerStatus = PlayerStatus.Switching;
             }

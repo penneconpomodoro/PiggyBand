@@ -17,6 +17,6 @@ public class ChainTimerSliderController : MonoBehaviour
     void Update()
     {
         Slider slider = GetComponent<Slider>();
-        slider.value = gameDirector.chainTimer;
+        slider.value = gameDirector.ChainTimer;
     }
 }

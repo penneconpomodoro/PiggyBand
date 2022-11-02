@@ -4,18 +4,20 @@ using UnityEngine;
 
 public class CoinController : MonoBehaviour
 {
-    public float coinX;
-    public float coinY;
-    private float intermediateCoinX;
-    private float intermediateCoinY;
+    public float x;
+    public float y;
     public float tracingFactor;
-    private UtilityMethod.MovingDirection movingDirection;
-    public AllCoinsController.CoinStatus coinStatus;
-    private AllCoinsController.CoinStatus oldCoinStatus;
-    private int coinStatusCounter;
+    public UtilityMethod.MovingDirection movingDirection { get; private set; }
+    private int fallingCounter;
+    private int changingCounter;
     public CoinType coinType;
     private CoinType targetCoinType;
     public GameObject nextLevelCoinPrefab;
+    public GameObject changeMarkPrefab;
+
+    public bool IsFalling { get; private set; }
+    public bool IsChanging { get; private set; }
+    public bool HasMoved { get; private set; }
 
     public enum CoinType
     {
@@ -31,8 +33,6 @@ public class CoinController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        intermediateCoinX = coinX;
-        intermediateCoinY = coinY;
         movingDirection = UtilityMethod.MovingDirection.NotMoving;
         //coinStatus = CoinStatus.Stay;
         targetCoinType = coinType;
@@ -41,14 +41,13 @@ public class CoinController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (oldCoinStatus != coinStatus)
+        fallingCounter++;
+        if (!IsFalling) fallingCounter = 0;
+        changingCounter++;
+        if (!IsChanging) changingCounter = 0;
+        if (IsFalling)
         {
-            coinStatusCounter = 0;
-        }
-        coinStatusCounter++;
-        if (coinStatus == AllCoinsController.CoinStatus.Falling)
-        {
-            if (coinStatusCounter % 8 == 0)
+            if (fallingCounter % 8 == 0)
             {
                 movingDirection = UtilityMethod.MovingDirection.Down;
             }
@@ -57,81 +56,102 @@ public class CoinController : MonoBehaviour
                 movingDirection = UtilityMethod.MovingDirection.NotMoving;
             }
         }
-        else if (coinStatus == AllCoinsController.CoinStatus.Changing)
-        {
-            movingDirection = UtilityMethod.MovingDirection.NotMoving;
-        }
     }
 
     private void LateUpdate()
     {
         switch (movingDirection)
         {
-            case UtilityMethod.MovingDirection.Left: coinX--; break;
-            case UtilityMethod.MovingDirection.Right: coinX++; break;
-            case UtilityMethod.MovingDirection.Up: coinY++; break;
-            case UtilityMethod.MovingDirection.Down: coinY--; break;
+            case UtilityMethod.MovingDirection.Left: x--; break;
+            case UtilityMethod.MovingDirection.Right: x++; break;
+            case UtilityMethod.MovingDirection.Up: y++; break;
+            case UtilityMethod.MovingDirection.Down: y--; break;
         }
         if (movingDirection != UtilityMethod.MovingDirection.NotMoving)
         {
-            coinStatus = AllCoinsController.CoinStatus.Moved;
+            HasMoved = true;
         }
         // set to default
         movingDirection = UtilityMethod.MovingDirection.NotMoving;
 
         // interpolated player position
-        intermediateCoinX = UtilityMethod.GetIntermediateX(intermediateCoinX, coinX, tracingFactor, 1e-3f);
-        intermediateCoinY = UtilityMethod.GetIntermediateX(intermediateCoinY, coinY, tracingFactor, 1e-3f);
-        transform.position = new Vector3(intermediateCoinX, intermediateCoinY, 0);
 
-        if (coinStatus == AllCoinsController.CoinStatus.Changing)
+        float tempX = transform.position.x;
+        float tempY = transform.position.y;
+        tempX = UtilityMethod.GetIntermediateX(tempX, x, tracingFactor, 1e-3f);
+        tempY = UtilityMethod.GetIntermediateX(tempY, y, tracingFactor, 1e-3f);
+        transform.position = new Vector3(tempX, tempY, 0);
+
+        if (IsChanging)
         {
+            if (targetCoinType != CoinType.None && transform.Find("ChangeMark") == null)
+            {
+                GameObject obj = Instantiate(changeMarkPrefab, transform);
+                obj.name = obj.name.Replace("(Clone)", "");
+            }
             Color col = GetComponent<SpriteRenderer>().color;
-            float a = ((1f + Mathf.Cos(2f * Mathf.PI * (float)coinStatusCounter / 32f)) / 2f);
+            float a = ((1f + Mathf.Cos(2f * Mathf.PI * (float)changingCounter / 32f)) / 2f);
             //            float a = Mathf.Max(1f - (float)coinStatusCounter / 180f, 0f);
             GetComponent<SpriteRenderer>().color = new Color(col.r, col.g, col.b, a);
-            transform.rotation = Quaternion.Euler(0f, (float)coinStatusCounter * 5f, 0f);
-            if (coinStatusCounter > 120)
+            transform.Rotate(new Vector3(0f, 5f, 0f));
+            if (changingCounter > 120)
             {
                 if (targetCoinType != CoinType.None)
                 {
                     GameObject obj = Instantiate(nextLevelCoinPrefab);
                     obj.transform.parent = this.transform.parent;
                     CoinController coinController = obj.GetComponent<CoinController>();
-                    coinController.InitCoin(coinX, coinY, targetCoinType, AllCoinsController.CoinStatus.Moved);
+                    coinController.InitCoin(x, y, targetCoinType, true);
                 }
                 Destroy(gameObject);
             }
         }
-        oldCoinStatus = coinStatus;
     }
 
-    public void InitCoin(float x, float y, AllCoinsController.CoinStatus status)
+    public void InitCoin(float x, float y, bool b)
     {
-        coinX = x;
-        coinY = y;
-        intermediateCoinX = x;
-        intermediateCoinY = y;
+        this.x = x;
+        this.y = y;
         transform.position = new Vector3(x, y, 0);
-        coinStatus = status;
-        oldCoinStatus = status;
+        IsChanging = false;
+        HasMoved = b;
     }
 
-    public void InitCoin(float x, float y, CoinType type, AllCoinsController.CoinStatus status)
+    public void InitCoin(float x, float y, CoinType type, bool b)
     {
-        coinX = x;
-        coinY = y;
-        intermediateCoinX = x;
-        intermediateCoinY = y;
+        this.x = x;
+        this.y = y;
         transform.position = new Vector3(x, y, 0);
         coinType = type;
-        coinStatus = status;
-        oldCoinStatus = status;
+        IsChanging = false;
+        HasMoved = b;
     }
 
-    public void SetMovingDirection(UtilityMethod.MovingDirection direction)
+    public void SetMovingDirection(float sx, float sy, float dx, float dy)
     {
-        movingDirection = direction;
+        movingDirection = UtilityMethod.MovingDirection.NotMoving;
+        if (sy == dy)
+        {
+            if (dx - sx == -1f)
+            {
+                movingDirection = UtilityMethod.MovingDirection.Left;
+            }
+            else if (dx - sx == 1f)
+            {
+                movingDirection = UtilityMethod.MovingDirection.Right;
+            }
+        }
+        else if (sx == dx)
+        {
+            if (dy - sy == -1f)
+            {
+                movingDirection = UtilityMethod.MovingDirection.Down;
+            }
+            else if (dy - sy == 1f)
+            {
+                movingDirection = UtilityMethod.MovingDirection.Up;
+            }
+        }
     }
 
     public void SetTargetCoinType(CoinType type)
@@ -139,7 +159,19 @@ public class CoinController : MonoBehaviour
         targetCoinType = type;
         if (coinType != targetCoinType)
         {
-            coinStatus = AllCoinsController.CoinStatus.Changing;
+            IsChanging = true;
         }
+    }
+
+    public void HasFallen()
+    {
+        HasMoved = true;
+        IsFalling = false;
+    }
+
+    public void SetFalling()
+    {
+        HasMoved = false;
+        IsFalling = true;
     }
 }

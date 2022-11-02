@@ -21,6 +21,6 @@ public class TimerTextController : MonoBehaviour
         {
             title = "開始まで";
         }
-        text.text = string.Format("{0}：{1:##0.0}秒", title, gameDirector.timerToFinish);
+        text.text = string.Format("{0}：{1:##0.0}秒", title, gameDirector.TimerToFinish);
     }
 }

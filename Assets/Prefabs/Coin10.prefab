@@ -97,9 +97,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7b2c153503ae99449abb58bc08b58d90, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  coinX: 0
-  coinY: 0
+  x: 0
+  y: 0
   tracingFactor: 0.25
-  coinStatus: 0
   coinType: 3
   nextLevelCoinPrefab: {fileID: 2905653476585613841, guid: f547b8961208c8d40a92a3718008cd80, type: 3}
+  changeMarkPrefab: {fileID: 3087495251886968046, guid: d428489fd21ea8242b1e81cbc55e9ab3, type: 3}

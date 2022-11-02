@@ -147,6 +147,7 @@ public class GameDirector : MonoBehaviour
     {
         CurrentChain++;
         MaxChain = Mathf.Max(MaxChain, CurrentChain);
+        ResetChainTimer();
         long oldEarnedMoney = EarnedMoney;
         EarnedMoney += (long)money * CurrentChain;
         CheckEarnedMoneyToExtendTimer(oldEarnedMoney);
